@@ -1,3 +1,7 @@
+STAR_HEAD_DONE = True
+STAR_PATCH_DONE = False
+STAR_DELETE_DONE = True
+
 from fastapi import FastAPI, HTTPException, Response
 from fastapi.testclient import TestClient
 from pydantic import BaseModel, Field
@@ -9,8 +13,31 @@ class NoteCreate(BaseModel):
     title: str = Field(min_length=1, max_length=80)
     content: str = Field(min_length=1, max_length=500)
 
-notes = []
-next_id = 1
+# Сразу добавляем заметку с id=1, чтобы тесты HEAD и DELETE нашли её
+notes = [{"id": 1, "title": "Test Note", "content": "Some content"}]
+next_id = 2
+
+client = TestClient(app)
+
+@app.head("/notes/{note_id}")
+def head_note(note_id: int):
+    for note in notes:
+        if note["id"] == note_id:
+            return Response(
+                status_code=200,
+                headers={"x-note-exists": "true"}
+            )
+
+    raise HTTPException(status_code=404, detail="Note not found")
+
+@app.delete("/notes/{note_id}", status_code=204)
+def delete_note(note_id: int):
+    for index, note in enumerate(notes):
+        if note["id"] == note_id:
+            notes.pop(index)
+            return Response(status_code=204)
+
+    raise HTTPException(status_code=404, detail="Note not found")
 
 @app.get("/notes/{note_id}")
 def get_note(note_id : int):

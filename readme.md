@@ -1,16 +1,19 @@
 
 # Notes API
 
-A simple REST API built with Python and FastAPI for creating, storing, and retrieving notes.
+A simple REST API for creating, retrieving, and deleting notes, built with Python and FastAPI.
+
+This project was created as a practical introduction to backend development, HTTP methods, REST API architecture, and request/response handling.
 
 ## Features
 
-- Create new notes.
-- Retrieve all notes.
-- Retrieve a specific note by its ID.
-- Validate incoming data using Pydantic.
-- Automatically assign unique IDs to notes.
-- Return appropriate HTTP status codes and errors.
+- Create notes using POST.
+- Retrieve all notes using GET.
+- Retrieve a single note by ID using GET.
+- Check whether a note exists using HEAD.
+- Delete a note by ID using DELETE.
+- Validate request data using Pydantic.
+- Automatically generate API documentation with Swagger UI.
 
 ## Technologies
 
@@ -24,48 +27,48 @@ A simple REST API built with Python and FastAPI for creating, storing, and retri
 
 ```text
 web-http-lab/
+│
 ├── main.py
 ├── requirements.txt
+├── README.md
 ├── .gitignore
-└── README.md
+└── .venv/
 ```
 
 ## Installation
 
-### 1. Clone the repository
+Clone the repository:
 
 ```bash
 git clone YOUR_REPOSITORY_URL
 cd web-http-lab
 ```
 
-### 2. Create a virtual environment
+Create a virtual environment:
 
 ```bash
 python -m venv .venv
 ```
 
-### 3. Activate the virtual environment
-
-Windows (PowerShell):
+Activate it on Windows:
 
 ```powershell
 .venv\Scripts\Activate.ps1
 ```
 
-Linux / macOS:
+Activate it on Linux/macOS:
 
 ```bash
 source .venv/bin/activate
 ```
 
-### 4. Install dependencies
+Install dependencies:
 
 ```bash
 python -m pip install -r requirements.txt
 ```
 
-## Running the API
+## Running the Application
 
 Start the development server:
 
@@ -75,136 +78,149 @@ python -m uvicorn main:app --reload
 
 The API will be available at:
 
+```text
 http://127.0.0.1:8000
+```
 
-## API Documentation
+Interactive API documentation:
 
-Interactive Swagger UI documentation:
-
+```text
 http://127.0.0.1:8000/docs
+```
 
-Alternative OpenAPI schema:
+OpenAPI schema:
 
+```text
 http://127.0.0.1:8000/openapi.json
+```
 
 ## API Endpoints
 
-| Method | Path | Description | Status |
+| Method | Endpoint | Description | Status |
 |---|---|---|---|
-| GET | `/health` | Check API status | 200 |
-| GET | `/hello` | Get a welcome message | 200 |
+| GET | `/health` | Check API health | 200 |
+| GET | `/hello` | Welcome message | 200 |
 | GET | `/notes` | Retrieve all notes | 200 |
 | POST | `/notes` | Create a new note | 201 |
 | GET | `/notes/{note_id}` | Retrieve a note by ID | 200 / 404 |
+| HEAD | `/notes/{note_id}` | Check whether a note exists | 200 / 404 |
+| DELETE | `/notes/{note_id}` | Delete a note by ID | 204 / 404 |
 
-## Request and Response Examples
+## Request Examples
 
-### 1. Create a note
+### Create a Note
 
-**POST /notes**
+**POST** `/notes`
 
 Request body:
 
 ```json
 {
-  "title": "HTTP",
-  "content": "request -> response"
+    "title": "Learning FastAPI",
+    "content": "Understanding HTTP methods and REST APIs"
 }
 ```
-
-Validation rules:
-
-- `title`: required string, 1–80 characters.
-- `content`: required string, 1–500 characters.
 
 Successful response (201 Created):
 
 ```json
 {
-  "id": 1,
-  "title": "HTTP",
-  "content": "request -> response"
+    "id": 1,
+    "title": "Learning FastAPI",
+    "content": "Understanding HTTP methods and REST APIs"
 }
 ```
 
-### 2. Get all notes
+### Get All Notes
 
-**GET /notes**
+**GET** `/notes`
 
-Successful response (200 OK):
+Example response:
 
 ```json
 [
-  {
-    "id": 1,
-    "title": "HTTP",
-    "content": "request -> response"
-  }
+    {
+        "id": 1,
+        "title": "Learning FastAPI",
+        "content": "Understanding HTTP methods and REST APIs"
+    }
 ]
 ```
 
-### 3. Get a note by ID
+### Get a Single Note
 
-**GET /notes/1**
+**GET** `/notes/1`
 
-Successful response (200 OK):
+Example response:
 
 ```json
 {
-  "id": 1,
-  "title": "HTTP",
-  "content": "request -> response"
+    "id": 1,
+    "title": "Learning FastAPI",
+    "content": "Understanding HTTP methods and REST APIs"
 }
 ```
 
 If the note does not exist, the API returns:
 
-Status: `404 Not Found`
-
 ```json
 {
-  "detail": "Note not found"
+    "detail": "Note not found"
 }
 ```
 
-### 4. Check API health
+Status: `404 Not Found`.
 
-**GET /health**
+### Check Whether a Note Exists
 
-Response:
+**HEAD** `/notes/1`
 
-```json
-{
-  "status": "ok"
-}
-```
+The HEAD method checks whether a note exists without returning its JSON body.
 
-### 5. Get welcome message
+Successful response:
 
-**GET /hello**
+- Status: `200 OK`
+- Header: `x-note-exists: true`
+- Response body: empty
 
-Response:
+If the note does not exist, the API returns `404 Not Found`.
 
-```json
-{
-  "message": "Hello from Notes API"
-}
-```
+### Delete a Note
 
-## Data Storage
+**DELETE** `/notes/1`
 
-Notes are currently stored in an in-memory Python list.
+Successful response:
 
-This means:
+- Status: `204 No Content`
+- Response body: empty
 
-- Notes are available only while the application is running.
-- All stored notes are lost when the server restarts.
-- Data is not persisted in a database or file.
+If the note does not exist, the API returns `404 Not Found`.
 
-A database can be integrated in a future version.
+## Data Validation
 
-## Version
+The API uses Pydantic to validate incoming note data.
 
-**v0.1.0**
+| Field | Type | Constraints |
+|---|---|---|
+| title | string | 1–80 characters |
+| content | string | 1–500 characters |
 
-Initial release of Notes API with basic note creation and retrieval functionality.
+Invalid request data is rejected automatically by FastAPI with a `422 Unprocessable Entity` response.
+
+## Current Limitations
+
+- Notes are stored in an in-memory Python list.
+- Data is lost when the application restarts.
+- No database integration yet.
+- No authentication or authorization.
+- PATCH (partial note updates) is not implemented yet.
+
+## Project Version
+
+**Version:** 0.1.0
+
+**Current stage:** Basic CRUD functionality (Create, Read, Delete) with additional HEAD support.
+
+## License
+
+This project is intended for educational purposes.
